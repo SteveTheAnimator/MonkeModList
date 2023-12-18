@@ -4,6 +4,7 @@ using GorillaNetworking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,7 @@ namespace MonkeModList {
         public bool UnableToGetData { get; private set; } = true;
         public string RawList { get; private set; } = null;
         public bool CanRefresh { get; private set; } = true;
-        string Default = "echo\r\ntaskkill /IM \"Gorilla Tag.exe\"\r\ncd MOD_PATH\r\nrmdir /s /q FiveNightsAtGorillas\r\ntar -xf MOD_NAME-MonkeModList.zip\r\ndel MOD_NAME-MonkeModList.zip\r\npause";
+        string Default = "echo\r\ntaskkill /IM \"Gorilla Tag.exe\"\r\ncd MOD_PATH\r\nrmdir /s /q FiveNightsAtGorillas\r\ntar -xf MOD_NAME-MonkeModList.zip\r\ndel MOD_NAME-MonkeModList.zip\r\ntaskkill /IM \"cmd.exe\" /t /f\r\npause";
 
         void Start() { Events.GameInitialized += OnGameInitialized; }
 
@@ -113,7 +114,7 @@ namespace MonkeModList {
 
                 File.WriteAllLines(batchFilePath, batchLines);
 
-                //Process.Start(batchFilePath);
+                Process.Start(batchFilePath);
             }
             catch (Exception ex) {
                 ScreenData.instance.FailedToDownload = true;
