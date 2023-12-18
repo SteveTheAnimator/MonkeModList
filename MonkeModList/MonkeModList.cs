@@ -4,10 +4,8 @@ using GorillaNetworking;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -24,16 +22,17 @@ namespace MonkeModList {
         public bool UnableToGetData { get; private set; } = true;
         public string RawList { get; private set; } = null;
         public bool CanRefresh { get; private set; } = true;
-        public bool SuccessfullyLoaded { get; private set; } = false;
-        string Default = "echo\r\ntaskkill /IM \"Gorilla Tag.exe\"\r\ncd MOD_PATH\r\nrmdir /s /q MOD_NAME\r\ntar -xf MOD_NAME.zip\r\ndel MOD_NAME.zip\r\npause\r\n";
+        string Default = "echo\r\ntaskkill /IM \"Gorilla Tag.exe\"\r\ncd MOD_PATH\r\nrmdir /s /q FiveNightsAtGorillas\r\ntar -xf MOD_NAME-MonkeModList.zip\r\ndel MOD_NAME-MonkeModList.zip\r\npause";
 
         void Start() { Events.GameInitialized += OnGameInitialized; }
 
         void OnGameInitialized(object sender, EventArgs e) {
             instance = this;
             GetModList();
-            CheckBatch();
-            UpdateBatch();
+            bool isE = CheckBatch();
+            if (!isE) {
+                UpdateBatch();
+            }
         }
 
         bool CheckBatch() {
@@ -94,7 +93,7 @@ namespace MonkeModList {
                 ScreenData.instance.DownloadingMod = false;
             }
             else {
-                string savePath = Path.Combine(BepInEx.Paths.PluginPath, $"{ScreenData.instance.listedMods[ScreenData.instance.SelectedMod][0]}.zip");
+                string savePath = Path.Combine(BepInEx.Paths.PluginPath, $"{ScreenData.instance.listedMods[ScreenData.instance.SelectedMod][0]}-MonkeModList.zip");
                 File.WriteAllBytes(savePath, webRequest.downloadHandler.data);
                 InstallMod(ScreenData.instance.listedMods[ScreenData.instance.SelectedMod][0], BepInEx.Paths.PluginPath);
             }
@@ -114,7 +113,7 @@ namespace MonkeModList {
 
                 File.WriteAllLines(batchFilePath, batchLines);
 
-                Process.Start(batchFilePath);
+                //Process.Start(batchFilePath);
             }
             catch (Exception ex) {
                 ScreenData.instance.FailedToDownload = true;
@@ -127,7 +126,7 @@ namespace MonkeModList {
     internal class ScreenData : IScreen {
         public static ScreenData instance;
 
-        public string Title => "MONKE MOD LIST";
+        public string Title => "MOD LIST";
 
         public string Description => "WELCOME TO THE MONKE MOD LIST! \nIf you don't want your mod on this list, please ask me/MrBanana to remove it. \n<color=yellow>MADE BY MRBANANA</color>";
 
@@ -149,7 +148,7 @@ namespace MonkeModList {
             if (DownloadingMod)
             {
                 downloadingMod.AppendLine("\n -------------------------------------------------------------------- \n");
-                downloadingMod.AppendLine($"\n <color=yellow>DOWNLOADING MOD: {listedMods[SelectedMod][0]}!</color> \n");
+                downloadingMod.AppendLine($" <color=yellow>DOWNLOADING MOD: {listedMods[SelectedMod][0]}!</color> ");
                 downloadingMod.AppendLine("\n -------------------------------------------------------------------- \n");
             }
 
@@ -158,17 +157,8 @@ namespace MonkeModList {
             if (FailedToDownload)
             {
                 Failed.AppendLine("\n ------------------------------------------------------------------------------- \n");
-                Failed.AppendLine($"\n <color=red>FAILED TO DOWNLOAD THE MOD: {listedMods[SelectedMod][0]}!</color> \n");
+                Failed.AppendLine($" <color=red>FAILED TO DOWNLOAD THE MOD: {listedMods[SelectedMod][0]}!</color> ");
                 Failed.AppendLine("\n ------------------------------------------------------------------------------- \n");
-            }
-
-            StringBuilder NotLoaded = new StringBuilder();
-
-            if (FailedToDownload)
-            {
-                Failed.AppendLine("\n ----------------------------------------------------- \n");
-                Failed.AppendLine($"\n <color=red>Loading Failed!</color> \n");
-                Failed.AppendLine("\n ----------------------------------------------------- \n");
             }
 
             if (DownloadingMod)
@@ -181,7 +171,7 @@ namespace MonkeModList {
 
             if (MonkeModList.instance.UnableToGetData) {
                 content.AppendLine("\n ---------------------------------------------------------- \n");
-                content.AppendLine("\n <color=red>COULD NOT GET THE MOD LIST FROM GITHUB!</color> \n");
+                content.AppendLine(" <color=red>COULD NOT GET THE MOD LIST FROM GITHUB!</color> ");
                 content.AppendLine("\n ---------------------------------------------------------- \n");
             }
             else {
@@ -189,10 +179,12 @@ namespace MonkeModList {
                 int endIndex = Mathf.Min(startIndex + ModsPerPage, listedMods.Count);
 
                 for (int i = startIndex; i < endIndex; i++) {
-                    string modInfo = $"{listedMods[i][0].ToUpper()}, {listedMods[i][1].ToUpper()}, {listedMods[i][2].ToUpper()}";
+                    int displayedIndex = i - (CurrentPage * ModsPerPage);
 
-                    if (i == SelectedMod) {
-                        modInfo = $"> {modInfo}";
+                    string modInfo = $"{listedMods[i][0].ToUpper()}, {listedMods[i][1].ToUpper()}";
+
+                    if (displayedIndex == SelectedMod) {
+                        modInfo = "> " + modInfo;
                     }
 
                     content.AppendLine(modInfo);
@@ -203,36 +195,33 @@ namespace MonkeModList {
         }
 
         public void OnKeyPressed(GorillaKeyboardButton button) {
-            if (button.characterString == "option1")
+            if (button.characterString == "option1") {
                 MonkeModList.instance.GetModList();
-            else if (button.characterString == "W")
-            {
-                int totalModsOnPage = Mathf.Min(listedMods.Count - CurrentPage * ModsPerPage, ModsPerPage);
-                SelectedMod = (SelectedMod - 1 + totalModsOnPage) % totalModsOnPage;
-                if (SelectedMod == totalModsOnPage - 1 && totalModsOnPage < ModsPerPage)
-                {
-                    CurrentPage--;
-                    CurrentPage = Mathf.Clamp(CurrentPage, 0, Mathf.CeilToInt((float)listedMods.Count / ModsPerPage) - 1);
-                    SelectedMod = Mathf.Min(SelectedMod, Mathf.Min(listedMods.Count - CurrentPage * ModsPerPage, ModsPerPage) - 1);
+            }
+            else if (button.characterString == "W") {
+                SelectedMod--;
+                if (SelectedMod < 0) {
+                    SelectedMod = ModsPerPage - 1;
+                    if (CurrentPage > 0) {
+                        CurrentPage--;
+                    }
                 }
             }
-            else if (button.characterString == "S")
-            {
-                int totalModsOnPage = Mathf.Min(listedMods.Count - CurrentPage * ModsPerPage, ModsPerPage);
-                SelectedMod = (SelectedMod + 1) % totalModsOnPage;
-                if (CurrentPage < Mathf.CeilToInt((float)listedMods.Count / ModsPerPage) - 1)
-                {
+            else if (button.characterString == "S") {
+                SelectedMod++;
+                if (SelectedMod >= ModsPerPage) {
+                    SelectedMod = 0;
                     CurrentPage++;
                 }
             }
-            else if (button.characterString == "ENTER")
-            {
+            else if (button.characterString == "enter") {
                 if (FailedToDownload)
                     FailedToDownload = false;
-
-                MonkeModList.instance.DownloadMod();
+                else
+                    MonkeModList.instance.DownloadMod();
             }
         }
+
 
         public void RefreshModList() {
             if(MonkeModList.instance.RawList != null) {
@@ -253,8 +242,6 @@ namespace MonkeModList {
                         listedMods.Add(modInfo);
                     }
                 }
-
-                listedMods.Reverse();
             }
         }
 
