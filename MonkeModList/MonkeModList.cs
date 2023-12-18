@@ -51,13 +51,15 @@ namespace MonkeModList {
 
         public string Title => "MOD LIST";
 
-        public string Description => "WELCOME TO THE MONKE MOD LIST! \n<color=yellow>MADE BY MRBANANA</color>";
+        public string Description => "WELCOME TO THE MONKE MOD LIST! \nW or S = Select Mod \nA or D = Switch Page \n Enter = Download Mod \n<color=yellow>MADE BY MRBANANA</color>";
 
         public List<string[]> listedMods = new List<string[]>();
 
         public int CurrentPage { get; private set; } = 0;
 
         public int SelectedMod { get; private set; } = 0;
+
+        public int ModsPerPage { get; private set; } = 6;
 
         public string GetContent() {
             StringBuilder content = new StringBuilder();
@@ -68,9 +70,8 @@ namespace MonkeModList {
                 content.AppendLine("\n ---------------------------------------------------------- \n");
             }
             else {
-                int modsPerPage = 8;
-                int startIndex = CurrentPage * modsPerPage;
-                int endIndex = Mathf.Min(startIndex + modsPerPage, listedMods.Count);
+                int startIndex = CurrentPage * ModsPerPage;
+                int endIndex = Mathf.Min(startIndex + ModsPerPage, listedMods.Count);
 
                 for (int i = startIndex; i < endIndex; i++) {
                     string modInfo = $"{listedMods[i][0].ToUpper()}, {listedMods[i][1].ToUpper()}";
@@ -86,23 +87,29 @@ namespace MonkeModList {
             return content.ToString();
         }
 
-        public void OnKeyPressed(GorillaKeyboardButton button) {
+        public void OnKeyPressed(GorillaKeyboardButton button)
+        {
             if (button.characterString == "option1")
                 RefreshModList();
-            else if (button.characterString == "W")
-                SelectedMod = (SelectedMod - 1 + listedMods.Count) % listedMods.Count;
-            else if (button.characterString == "S")
-                SelectedMod = (SelectedMod + 1) % listedMods.Count;
+            else if (button.characterString == "W") {
+                int totalModsOnPage = Mathf.Min(listedMods.Count - CurrentPage * ModsPerPage, ModsPerPage);
+                SelectedMod = (SelectedMod - 1 + totalModsOnPage) % totalModsOnPage;
+            }
+            else if (button.characterString == "S") {
+                int totalModsOnPage = Mathf.Min(listedMods.Count - CurrentPage * ModsPerPage, ModsPerPage);
+                SelectedMod = (SelectedMod + 1) % totalModsOnPage;
+            }
             else if (button.characterString == "A") {
                 CurrentPage--;
-                SelectedMod = Mathf.Clamp(SelectedMod, 0, listedMods.Count - 1);
+                CurrentPage = Mathf.Clamp(CurrentPage, 0, Mathf.CeilToInt((float)listedMods.Count / ModsPerPage) - 1);
+                SelectedMod = Mathf.Min(SelectedMod, Mathf.Min(listedMods.Count - CurrentPage * ModsPerPage, ModsPerPage) - 1);
             }
             else if (button.characterString == "D") {
                 CurrentPage++;
-                SelectedMod = Mathf.Clamp(SelectedMod, 0, listedMods.Count - 1);
+                CurrentPage = Mathf.Clamp(CurrentPage, 0, Mathf.CeilToInt((float)listedMods.Count / ModsPerPage) - 1);
+                SelectedMod = 0;
             }
         }
-
 
         public void RefreshModList() {
             if(MonkeModList.instance.RawList != null) {
