@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Utilla;
 using System.IO;
+using System.IO.Compression;
 
 namespace MonkeModList {
     [ModdedGamemode]
@@ -49,8 +50,6 @@ namespace MonkeModList {
 
             ScreenData.instance.RefreshModList();
 
-            DownloadFile();
-
             www.Dispose();
         }
         
@@ -60,11 +59,57 @@ namespace MonkeModList {
             CanRefresh = true;
         }
 
-        public void DownloadFile() {
-            string path = Path.Combine(BepInEx.Paths.PluginPath, $"{listedMods[ScreenData.instance.SelectedMod][0]}.dll");
+        public void DownloadSelectedMod() { if (listedMods[ScreenData.instance.SelectedMod] != null) { StartCoroutine(DownloadFile()); } }
+        IEnumerator DownloadFile() {
+            ScreenData.instance.FailedToDownload = false;
+            ScreenData.instance.Successfully = false;
+            ScreenData.instance.DownloadingMod = true;
 
-            WebClient client = new WebClient();
-            client.DownloadFile(listedMods[ScreenData.instance.SelectedMod][3], path);
+            string fileExtension = Path.GetExtension(listedMods[ScreenData.instance.SelectedMod][3].ToLower());
+            string path = Path.Combine(BepInEx.Paths.PluginPath, $"{listedMods[ScreenData.instance.SelectedMod][0]}{fileExtension}");
+            string dupeName = Path.Combine(BepInEx.Paths.PluginPath, $"{listedMods[ScreenData.instance.SelectedMod][0]}-MonkeModList{fileExtension}");
+
+            UnityWebRequest www = UnityWebRequest.Get(listedMods[ScreenData.instance.SelectedMod][3]);
+            yield return www.SendWebRequest();
+
+            if (www.isNetworkError || www.isHttpError || www.result != UnityWebRequest.Result.Success) {
+                ScreenData.instance.FailedToDownload = true;
+                ScreenData.instance.Successfully = false;
+                ScreenData.instance.DownloadingMod = false;
+                Debug.Log(www.error);
+            }
+            else {
+                try {
+                    string savePath = Path.Combine(BepInEx.Paths.PluginPath, dupeName);
+                    File.WriteAllBytes(savePath, www.downloadHandler.data);
+
+                    if (fileExtension == ".zip") {
+                        ZipFile.ExtractToDirectory(dupeName, BepInEx.Paths.PluginPath);
+                        File.Delete(dupeName);
+                        ScreenData.instance.FailedToDownload = false;
+                        ScreenData.instance.Successfully = true;
+                        ScreenData.instance.DownloadingMod = false;
+                    }
+                    else if (fileExtension == ".dll") {
+                        ScreenData.instance.FailedToDownload = false;
+                        ScreenData.instance.Successfully = true;
+                        ScreenData.instance.DownloadingMod = false;
+                    }
+                    else {
+                        ScreenData.instance.FailedToDownload = true;
+                        ScreenData.instance.Successfully = false;
+                        ScreenData.instance.DownloadingMod = false;
+                    }
+                }
+                catch (Exception ex) {
+                    Debug.Log(www.error);
+                    ScreenData.instance.FailedToDownload = true;
+                    ScreenData.instance.Successfully = false;
+                    ScreenData.instance.DownloadingMod = false;
+                }
+            }
+
+            www.Dispose();
         }
     }
 
@@ -92,28 +137,29 @@ namespace MonkeModList {
 
             if (DownloadingMod)
             {
-                downloadingMod.AppendLine("\n -------------------------------------------------------------------- \n");
-                downloadingMod.AppendLine($" <color=yellow>DOWNLOADING MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color> ");
-                downloadingMod.AppendLine("\n -------------------------------------------------------------------- \n");
+                downloadingMod.AppendLine("-------------------------------------------------------------------- \n");
+                downloadingMod.AppendLine($" <color=yellow>DOWNLOADING MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>\n");
+                downloadingMod.AppendLine("--------------------------------------------------------------------");
             }
 
             StringBuilder Failed = new StringBuilder();
 
             if (FailedToDownload)
             {
-                Failed.AppendLine("\n ------------------------------------------------------------------------------- \n");
-                Failed.AppendLine($" <color=red>FAILED TO DOWNLOAD THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color> ");
-                Failed.AppendLine("\n ------------------------------------------------------------------------------- \n");
+                Failed.AppendLine("------------------------------------------------------------------------------- \n");
+                Failed.AppendLine($" <color=red>FAILED TO DOWNLOAD THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>\n");
+                Failed.AppendLine("-------------------------------------------------------------------------------");
             }
 
             StringBuilder Success = new StringBuilder();
 
             if (Successfully)
             {
-                Success.AppendLine("\n ------------------------------------------------------------------------------- \n");
-                Success.AppendLine($" <color=green>SUCCESSFULY DOWNLOADED THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color> \n");
-                Success.AppendLine($" <color=green>PLEASE RESTART YOUR GAME TO LOAD THE MOD.</color> ");
-                Success.AppendLine("\n ------------------------------------------------------------------------------- \n");
+                Success.AppendLine("------------------------------------------------------------------------------- \n");
+                Success.AppendLine($" <color=lime>SUCCESSFULY DOWNLOADED THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>\n");
+                Success.AppendLine($" <color=lime>PLEASE RESTART YOUR GAME TO LOAD THE MOD.</color>\n");
+                Success.AppendLine($" <color=lime>PRESS ENTER TO GO BACK AND DOWNLOAD MORE MODS.</color>\n");
+                Success.AppendLine("-------------------------------------------------------------------------------");
             }
 
             if (DownloadingMod)
@@ -175,8 +221,10 @@ namespace MonkeModList {
             else if (button.characterString == "enter") {
                 if (FailedToDownload)
                     FailedToDownload = false;
+                else if (Successfully)
+                    Successfully = false;
                 else {
-                    MonkeModList.instance.DownloadFile();
+                    MonkeModList.instance.DownloadSelectedMod();
                 }
             }
         }
