@@ -80,10 +80,12 @@ namespace MonkeModList {
             }
             else {
                 try {
-                    string savePath = Path.Combine(BepInEx.Paths.PluginPath, dupeName);
-                    File.WriteAllBytes(savePath, www.downloadHandler.data);
-
                     if (fileExtension == ".zip") {
+                        if (File.Exists(path.Replace(".zip", ""))) {
+                            File.Delete(path);
+                        }
+                        string savePath = Path.Combine(BepInEx.Paths.PluginPath, dupeName);
+                        File.WriteAllBytes(savePath, www.downloadHandler.data);
                         ZipFile.ExtractToDirectory(dupeName, BepInEx.Paths.PluginPath);
                         File.Delete(dupeName);
                         ScreenData.instance.FailedToDownload = false;
@@ -91,6 +93,11 @@ namespace MonkeModList {
                         ScreenData.instance.DownloadingMod = false;
                     }
                     else if (fileExtension == ".dll") {
+                        if (File.Exists(path)) {
+                            File.Delete(path);
+                        }
+                        string savePath = Path.Combine(BepInEx.Paths.PluginPath, path);
+                        File.WriteAllBytes(savePath, www.downloadHandler.data);
                         ScreenData.instance.FailedToDownload = false;
                         ScreenData.instance.Successfully = true;
                         ScreenData.instance.DownloadingMod = false;
