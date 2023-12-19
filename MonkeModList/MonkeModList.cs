@@ -79,6 +79,7 @@ namespace MonkeModList {
                 ScreenData.instance.DownloadingMod = false;
                 ScreenData.instance.AlreadyHasMod = false;
                 Debug.Log(www.error);
+                yield break;
             }
             else {
                 try {
@@ -92,12 +93,14 @@ namespace MonkeModList {
                             ScreenData.instance.Successfully = true;
                             ScreenData.instance.DownloadingMod = false;
                             ScreenData.instance.AlreadyHasMod = false;
+                            yield break;
                         }
                         else {
                             ScreenData.instance.FailedToDownload = false;
                             ScreenData.instance.Successfully = false;
                             ScreenData.instance.DownloadingMod = false;
                             ScreenData.instance.AlreadyHasMod = true;
+                            yield break;
                         }
                     }
                     else if (fileExtension == ".dll") {
@@ -108,12 +111,14 @@ namespace MonkeModList {
                             ScreenData.instance.Successfully = true;
                             ScreenData.instance.DownloadingMod = false;
                             ScreenData.instance.AlreadyHasMod = false;
+                            yield break;
                         }
                         else {
                             ScreenData.instance.FailedToDownload = false;
                             ScreenData.instance.Successfully = false;
                             ScreenData.instance.DownloadingMod = false;
                             ScreenData.instance.AlreadyHasMod = true;
+                            yield break;
                         }
                     }
                 }
@@ -123,6 +128,7 @@ namespace MonkeModList {
                     ScreenData.instance.Successfully = false;
                     ScreenData.instance.DownloadingMod = false;
                     ScreenData.instance.AlreadyHasMod = false;
+                    yield break;
                 }
             }
 
@@ -236,12 +242,18 @@ namespace MonkeModList {
                     CurrentPage++;
                 }
             }
-            else if (button.characterString == "enter") {
+
+            else if (button.characterString == "enter")
+            {
+                int displayedIndex = SelectedMod + (CurrentPage * ModsPerPage);
                 if (FailedToDownload)
                     FailedToDownload = false;
                 else if (Successfully)
                     Successfully = false;
-                else {
+                else if (AlreadyHasMod)
+                    AlreadyHasMod = false;
+                else if (displayedIndex >= 0 && displayedIndex < MonkeModList.instance.listedMods.Count)  {
+                    SelectedMod = displayedIndex;
                     MonkeModList.instance.DownloadSelectedMod();
                 }
             }

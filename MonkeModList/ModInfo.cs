@@ -4,6 +4,6 @@
     {
         public const string GUID = "com.mrbanana.gorillatag.monkemodlist";
         public const string Name = "MonkeModList";
-        public const string Version = "1.0.0";
+        public const string Version = "1.0.1";
     }
 }
