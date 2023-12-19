@@ -246,12 +246,21 @@ namespace MonkeModList {
             else if (button.characterString == "enter")
             {
                 int displayedIndex = SelectedMod + (CurrentPage * ModsPerPage);
-                if (FailedToDownload)
+                if (FailedToDownload) {
                     FailedToDownload = false;
-                else if (Successfully)
+                    SelectedMod = 0;
+                    CurrentPage = 0;
+                }
+                else if (Successfully) {
                     Successfully = false;
-                else if (AlreadyHasMod)
+                    SelectedMod = 0;
+                    CurrentPage = 0;
+                }
+                else if (AlreadyHasMod) {
                     AlreadyHasMod = false;
+                    SelectedMod = 0;
+                    CurrentPage = 0;
+                }
                 else if (displayedIndex >= 0 && displayedIndex < MonkeModList.instance.listedMods.Count)  {
                     SelectedMod = displayedIndex;
                     MonkeModList.instance.DownloadSelectedMod();
