@@ -135,31 +135,22 @@ namespace MonkeModList {
         public string GetContent() {
             StringBuilder downloadingMod = new StringBuilder();
 
-            if (DownloadingMod)
-            {
-                downloadingMod.AppendLine("-------------------------------------------------------------------- \n");
-                downloadingMod.AppendLine($" <color=yellow>DOWNLOADING MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>\n");
-                downloadingMod.AppendLine("--------------------------------------------------------------------");
+            if (DownloadingMod) {
+                downloadingMod.AppendLine($"\n<color=yellow>DOWNLOADING MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>");
             }
 
             StringBuilder Failed = new StringBuilder();
 
-            if (FailedToDownload)
-            {
-                Failed.AppendLine("------------------------------------------------------------------------------- \n");
-                Failed.AppendLine($" <color=red>FAILED TO DOWNLOAD THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>\n");
-                Failed.AppendLine("-------------------------------------------------------------------------------");
+            if (FailedToDownload) {
+                Failed.AppendLine($"\n<color=red>FAILED TO DOWNLOAD THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>");
             }
 
             StringBuilder Success = new StringBuilder();
 
-            if (Successfully)
-            {
-                Success.AppendLine("------------------------------------------------------------------------------- \n");
-                Success.AppendLine($" <color=lime>SUCCESSFULY DOWNLOADED THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>\n");
-                Success.AppendLine($" <color=lime>PLEASE RESTART YOUR GAME TO LOAD THE MOD.</color>\n");
-                Success.AppendLine($" <color=lime>PRESS ENTER TO GO BACK AND DOWNLOAD MORE MODS.</color>\n");
-                Success.AppendLine("-------------------------------------------------------------------------------");
+            if (Successfully) {
+                Success.AppendLine($"\n<color=lime>SUCCESSFULY DOWNLOADED THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>");
+                Success.AppendLine($"<color=lime>PLEASE RESTART YOUR GAME TO LOAD THE MOD.</color>");
+                Success.AppendLine($"<color=lime>PRESS ENTER TO GO BACK AND DOWNLOAD MORE MODS.</color>");
             }
 
             if (DownloadingMod)
@@ -174,9 +165,7 @@ namespace MonkeModList {
             StringBuilder content = new StringBuilder();
 
             if (MonkeModList.instance.UnableToGetData) {
-                content.AppendLine("\n ---------------------------------------------------------- \n");
-                content.AppendLine(" <color=red>COULD NOT GET THE MOD LIST FROM GITHUB!</color> ");
-                content.AppendLine("\n ---------------------------------------------------------- \n");
+                content.AppendLine("\n<color=red>COULD NOT GET THE MOD LIST FROM GITHUB!</color> ");
             }
             else {
                 int startIndex = CurrentPage * ModsPerPage;
