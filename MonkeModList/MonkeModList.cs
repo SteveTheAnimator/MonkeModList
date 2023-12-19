@@ -83,7 +83,7 @@ namespace MonkeModList {
             else {
                 try {
                     if (fileExtension == ".zip") {
-                        if (!File.Exists(path.Replace(".zip", ""))) {
+                        if (!Directory.Exists(path.Replace(".zip", ""))) {
                             string savePath = Path.Combine(BepInEx.Paths.PluginPath, dupeName);
                             File.WriteAllBytes(savePath, www.downloadHandler.data);
                             ZipFile.ExtractToDirectory(dupeName, BepInEx.Paths.PluginPath);
@@ -101,12 +101,20 @@ namespace MonkeModList {
                         }
                     }
                     else if (fileExtension == ".dll") {
-                        string savePath = Path.Combine(BepInEx.Paths.PluginPath, path);
-                        File.WriteAllBytes(savePath, www.downloadHandler.data);
-                        ScreenData.instance.FailedToDownload = false;
-                        ScreenData.instance.Successfully = true;
-                        ScreenData.instance.DownloadingMod = false;
-                        ScreenData.instance.AlreadyHasMod = false;
+                        if (!File.Exists(path)) {
+                            string savePath = Path.Combine(BepInEx.Paths.PluginPath, path);
+                            File.WriteAllBytes(savePath, www.downloadHandler.data);
+                            ScreenData.instance.FailedToDownload = false;
+                            ScreenData.instance.Successfully = true;
+                            ScreenData.instance.DownloadingMod = false;
+                            ScreenData.instance.AlreadyHasMod = false;
+                        }
+                        else {
+                            ScreenData.instance.FailedToDownload = false;
+                            ScreenData.instance.Successfully = false;
+                            ScreenData.instance.DownloadingMod = false;
+                            ScreenData.instance.AlreadyHasMod = true;
+                        }
                     }
                 }
                 catch (Exception ex) {
@@ -160,7 +168,7 @@ namespace MonkeModList {
 
             if (AlreadyHasMod) {
                 hasMod.AppendLine($"\n<color=red>FAILED TO DOWNLOAD THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>");
-                hasMod.AppendLine($"\n<color=red>UPDATING MODS THAT ARE IN ZIP FORMAT ARE NOT SUPPORTED AT THE MOMENT.</color>");
+                hasMod.AppendLine($"<color=red>YOU ALREADY HAVE THAT MOD, UPDATING MODS ARE NOT SUPPORTED AT THE MOMENT.</color>");
             }
 
             StringBuilder Success = new StringBuilder();
