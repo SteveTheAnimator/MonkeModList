@@ -64,6 +64,7 @@ namespace MonkeModList {
             ScreenData.instance.FailedToDownload = false;
             ScreenData.instance.Successfully = false;
             ScreenData.instance.DownloadingMod = true;
+            ScreenData.instance.AlreadyHasMod = false;
 
             string fileExtension = Path.GetExtension(listedMods[ScreenData.instance.SelectedMod][3].ToLower());
             string path = Path.Combine(BepInEx.Paths.PluginPath, $"{listedMods[ScreenData.instance.SelectedMod][0]}{fileExtension}");
@@ -76,36 +77,36 @@ namespace MonkeModList {
                 ScreenData.instance.FailedToDownload = true;
                 ScreenData.instance.Successfully = false;
                 ScreenData.instance.DownloadingMod = false;
+                ScreenData.instance.AlreadyHasMod = false;
                 Debug.Log(www.error);
             }
             else {
                 try {
                     if (fileExtension == ".zip") {
-                        if (File.Exists(path.Replace(".zip", ""))) {
-                            File.Delete(path);
+                        if (!File.Exists(path.Replace(".zip", ""))) {
+                            string savePath = Path.Combine(BepInEx.Paths.PluginPath, dupeName);
+                            File.WriteAllBytes(savePath, www.downloadHandler.data);
+                            ZipFile.ExtractToDirectory(dupeName, BepInEx.Paths.PluginPath);
+                            File.Delete(dupeName);
+                            ScreenData.instance.FailedToDownload = false;
+                            ScreenData.instance.Successfully = true;
+                            ScreenData.instance.DownloadingMod = false;
+                            ScreenData.instance.AlreadyHasMod = false;
                         }
-                        string savePath = Path.Combine(BepInEx.Paths.PluginPath, dupeName);
-                        File.WriteAllBytes(savePath, www.downloadHandler.data);
-                        ZipFile.ExtractToDirectory(dupeName, BepInEx.Paths.PluginPath);
-                        File.Delete(dupeName);
-                        ScreenData.instance.FailedToDownload = false;
-                        ScreenData.instance.Successfully = true;
-                        ScreenData.instance.DownloadingMod = false;
+                        else {
+                            ScreenData.instance.FailedToDownload = false;
+                            ScreenData.instance.Successfully = false;
+                            ScreenData.instance.DownloadingMod = false;
+                            ScreenData.instance.AlreadyHasMod = true;
+                        }
                     }
                     else if (fileExtension == ".dll") {
-                        if (File.Exists(path)) {
-                            File.Delete(path);
-                        }
                         string savePath = Path.Combine(BepInEx.Paths.PluginPath, path);
                         File.WriteAllBytes(savePath, www.downloadHandler.data);
                         ScreenData.instance.FailedToDownload = false;
                         ScreenData.instance.Successfully = true;
                         ScreenData.instance.DownloadingMod = false;
-                    }
-                    else {
-                        ScreenData.instance.FailedToDownload = true;
-                        ScreenData.instance.Successfully = false;
-                        ScreenData.instance.DownloadingMod = false;
+                        ScreenData.instance.AlreadyHasMod = false;
                     }
                 }
                 catch (Exception ex) {
@@ -113,6 +114,7 @@ namespace MonkeModList {
                     ScreenData.instance.FailedToDownload = true;
                     ScreenData.instance.Successfully = false;
                     ScreenData.instance.DownloadingMod = false;
+                    ScreenData.instance.AlreadyHasMod = false;
                 }
             }
 
@@ -137,6 +139,8 @@ namespace MonkeModList {
 
         public bool FailedToDownload = false;
 
+        public bool AlreadyHasMod = false;
+
         public bool Successfully = false;
 
         public string GetContent() {
@@ -150,6 +154,13 @@ namespace MonkeModList {
 
             if (FailedToDownload) {
                 Failed.AppendLine($"\n<color=red>FAILED TO DOWNLOAD THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>");
+            }
+
+            StringBuilder hasMod = new StringBuilder();
+
+            if (AlreadyHasMod) {
+                hasMod.AppendLine($"\n<color=red>FAILED TO DOWNLOAD THE MOD: {MonkeModList.instance.listedMods[SelectedMod][0]}!</color>");
+                hasMod.AppendLine($"\n<color=red>UPDATING MODS THAT ARE IN ZIP FORMAT ARE NOT SUPPORTED AT THE MOMENT.</color>");
             }
 
             StringBuilder Success = new StringBuilder();
@@ -168,6 +179,9 @@ namespace MonkeModList {
 
             if(Successfully)
                 return Success.ToString();
+
+            if (AlreadyHasMod)
+                return hasMod.ToString();
 
             StringBuilder content = new StringBuilder();
 
