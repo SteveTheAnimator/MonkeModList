@@ -1,21 +1,16 @@
 ﻿using HarmonyLib;
 using System.Reflection;
 
-namespace MonkeModList
-{
-    public class HarmonyPatches
-    {
+namespace MonkeModList {
+    public class HarmonyPatches {
         private static Harmony instance;
 
         public static bool IsPatched { get; private set; }
-        public const string InstanceId = ModInfo.GUID;
+        public const string InstanceId = "com.mrbanana.gorillatag.monkemodlist";
 
-        internal static void ApplyHarmonyPatches()
-        {
-            if (!IsPatched)
-            {
-                if (instance == null)
-                {
+        internal static void ApplyHarmonyPatches() {
+            if (!IsPatched) {
+                if (instance == null) {
                     instance = new Harmony(InstanceId);
                 }
 
@@ -24,10 +19,8 @@ namespace MonkeModList
             }
         }
 
-        internal static void RemoveHarmonyPatches()
-        {
-            if (instance != null && IsPatched)
-            {
+        internal static void RemoveHarmonyPatches() {
+            if (instance != null && IsPatched) {
                 instance.UnpatchSelf();
                 IsPatched = false;
             }
