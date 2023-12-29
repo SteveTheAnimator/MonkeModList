@@ -4,3 +4,5 @@
 # Option1 = Refresh list (20 second delay)
 # W = switch selected mod
 # S = switch selected mod
+# A = switch page
+# D = switch page
