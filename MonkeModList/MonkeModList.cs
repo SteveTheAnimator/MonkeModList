@@ -35,7 +35,7 @@ namespace MonkeModList {
             if(ModManagersExist) {
                 string[] batchFiles = Directory.GetFiles(path, "*.bat");
 
-                string UpdateModDLLtext = "echo\r\ntaskkill /IM \"Gorilla Tag.exe\"\r\ncd C:\\Program Files\\Oculus\\Software\\Software\\another-axiom-gorilla-tag\\BepInEx\\plugins\r\ndel /q LegMod.dll\r\nrename \"MonkeModList-LegMod.dll\" \"LegMod.dll\"\r\npause\r\n";
+                string UpdateModDLLtext = "echo\r\ntaskkill /IM \"Gorilla Tag.exe\"\r\ncd C:\\Program Files\\Oculus\\Software\\Software\\another-axiom-gorilla-tag\\BepInEx\\plugins\r\ndel /q MOD_NAME.dll\r\nrename \"MonkeModList-MOD_NAME.dll\" \"MOD_NAME.dll\"\r\npause\r\n";
                 string UpdateModZIPtext = "echo\r\ntaskkill /IM \"Gorilla Tag.exe\"\r\ncd PLUGIN_PATH\r\nrmdir /q MOD_NAME\r\ntar -xf MonkeModList-MOD_NAME.zip\r\nrename \"MonkeModList-MOD_NAME\" \"MOD_NAME\"\r\ndel MonkeModList-MOD_NAME.zip\r\npause";
 
                 foreach (string batchFile in batchFiles) {
